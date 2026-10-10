@@ -334,7 +334,7 @@
       ok("start copy present: " + s, t2.indexOf(s) > -1);
     });
     var vids2 = g.contentDocument.querySelectorAll("video");
-    ok("start video attributes", vids2.length === 1 && vids2[0].controls && vids2[0].hasAttribute("playsinline") && vids2[0].preload === "none" && !vids2[0].autoplay && !!vids2[0].querySelector("track[kind=captions][default]"));
+    ok("start video attributes (captions track present, off by default - burned in)", vids2.length === 1 && vids2[0].controls && vids2[0].hasAttribute("playsinline") && vids2[0].preload === "none" && !vids2[0].autoplay && !!vids2[0].querySelector("track[kind=captions]") && !vids2[0].querySelector("track[default]"));
     ok("start all imgs have alt", Array.prototype.every.call(g.contentDocument.images, function (i) { return i.hasAttribute("alt"); }));
     var h2s = g.contentDocument.querySelectorAll("h1").length;
     ok("start has 7 H1 elements in markup (variants), one visible", h2s === 7);
