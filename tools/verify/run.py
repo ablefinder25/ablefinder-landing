@@ -166,7 +166,7 @@ def js_off():
         check("JS off %s: html tag has no data-variant/data-os (set only by script)" % name, re.search(r"<html[^>]*data-", src) is None)
         flat = re.findall(r'<a href="([^"]+)"[^>]*data-store', src)
         check("JS off %s: all %d store links are real store URLs with default ct" % (name, len(flat)), len(flat) >= 10 and all(
-            (u.startswith("https://apps.apple.com/au/app/ablefinder/id6751715948?pt=128092141&ct=") or
+            (u.startswith("https://apps.apple.com/au/app/ablefinder/id6751715948?pt=128092141&amp;ct=") or
              u.startswith("https://play.google.com/store/apps/details?id=com.ablefinder.ablefinder&amp;referrer=")) and "default" in u for u in flat))
     # Chrome cannot screenshot with scripting disabled, so render a temp copy with every <script> removed.
     tmp = tempfile.mkdtemp(prefix="sc-nojs-")
