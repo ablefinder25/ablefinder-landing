@@ -1,4 +1,4 @@
-/* In-browser checks. Loaded by harness.html. Query: ?mode=main|sam|os */
+/* In-browser checks. Loaded by harness.html. Query: ?mode=main|sam|os&consent=0|1 */
 (function () {
   "use strict";
   var P = new URLSearchParams(location.search);
@@ -28,6 +28,8 @@
     tonight: "Post it tonight. Read your replies tomorrow."
   };
   var DAYS_H1 = "\"My participant started therapy within days.\" - Sam, support coordinator, Illawarra";
+  var CONSENT = MODE === "sam" || P.get("consent") === "1"; /* mirrors SAM_CONSENT in the repo */
+  if (CONSENT) { START_H1.days = DAYS_H1; }
 
   function load(path, w, h) {
     document.getElementById("out").textContent = "PENDING loading " + path;
@@ -318,7 +320,7 @@
     var ph = norm(f.contentDocument.body.textContent).match(/\[you to (provide|confirm)[^\]]*\]/g) || [];
     ok("landing placeholders visible", ph.length >= 7, ph.length + " found");
     ok("landing has 5 find tiles and tile names", f.contentDocument.querySelectorAll(".tiles li").length === 5);
-    ok("landing: Sam testimonial hidden while consent false", MODE === "sam" ? shown(f.contentDocument.getElementById("sam-testimonial")) : !shown(f.contentDocument.getElementById("sam-testimonial")));
+    ok("landing: Sam testimonial shown only when consent true", CONSENT ? shown(f.contentDocument.getElementById("sam-testimonial")) : !shown(f.contentDocument.getElementById("sam-testimonial")));
     var imgs = Array.prototype.every.call(f.contentDocument.images, function (i) { return i.hasAttribute("alt"); });
     ok("landing all imgs have alt", imgs);
     var logo = f.contentDocument.querySelector("#logo img");
@@ -387,7 +389,7 @@
       if (MODE === "os") {
         await osMode();
       } else {
-        var sam = MODE === "sam";
+        var sam = CONSENT;
         await h1Checks(LAND, LAND_H1, "landing", false);
         await h1Checks(START, START_H1, "start", sam);
         if (sam) {
@@ -400,7 +402,8 @@
           var ba = Array.prototype.filter.call(g.contentDocument.querySelectorAll("a[data-store]"), function (a) { return a.getAttribute("href").indexOf("sc-start-days") > -1; }).length;
           ok("sam mode: start ?c=days store links carry sc-start-days", ba === g.contentDocument.querySelectorAll("a[data-store]").length, ba);
           drop(g);
-        } else {
+        }
+        if (MODE !== "sam") {
           await sectionOrder("landing");
           var w1 = await foldChecks(LAND, LAND_H1, "landing");
           var w2 = await foldChecks(START, START_H1, "start");
@@ -420,6 +423,7 @@
           await trackingChecks(START, "sc-start", "", "start");
           await trackingChecks(START, "sc-start", "sameday", "start sameday");
           await trackingChecks(START, "sc-start", "tonight", "start tonight");
+          if (CONSENT) { await trackingChecks(START, "sc-start", "days", "start days"); }
           await contentChecks();
           await tapTargets();
         }

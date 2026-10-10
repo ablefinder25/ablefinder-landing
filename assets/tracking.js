@@ -3,7 +3,7 @@
 (function () {
   "use strict";
 
-  const SAM_CONSENT = false;                                // flip to true only when Ana confirms Sam's written consent
+  const SAM_CONSENT = true;                                 // Sam's consent confirmed by Ana, 10/10/2026
   const PIXEL_PAGE = document.body.dataset.page;            // "sc-landing" | "sc-start"
   const root = document.documentElement;
 

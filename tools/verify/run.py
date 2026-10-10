@@ -130,7 +130,7 @@ def static_checks():
     check("descriptions unique", descs[0] != descs[1], descs)
     sam_js = re.search(r"const SAM_CONSENT = (\w+);", text["assets/tracking.js"]).group(1)
     sam_html = re.search(r"var SAM_CONSENT=(\w+);", text["support-coordinators/start/index.html"]).group(1)
-    check("SAM_CONSENT is false in both places and equal", sam_js == sam_html == "false", (sam_js, sam_html))
+    check("SAM_CONSENT equal in both places", sam_js == sam_html and sam_js in ("true", "false"), (sam_js, sam_html))
     check("VTT files start with WEBVTT and one cue", all(text[f].startswith("WEBVTT") and text[f].count("-->") == 1 for f in
           ["assets/video/sc-request-under-a-minute.vtt", "assets/video/same-day-ian.vtt"]))
     check("brief VTT text exact", "Screen recording: a support coordinator posts a request in the AbleFinder app - service type, description, timing, location and preferences - then taps Create request." in text["assets/video/sc-request-under-a-minute.vtt"])
@@ -238,33 +238,15 @@ def main():
         print("Chrome not found")
         return 2
     static_checks()
+    consent = re.search(r"const SAM_CONSENT = (\w+);", open(os.path.join(REPO, "assets/tracking.js"), encoding="utf-8").read()).group(1) == "true"
     s_main = serve(REPO, 8000)
-    res, err = harness(s_main, 8000, "mode=main")
+    res, err = harness(s_main, 8000, "mode=main&consent=" + ("1" if consent else "0"))
     s_main.shutdown()
     if res is None:
         check("main harness produced output", False, err[-500:])
     else:
         for r in res:
             check(r["name"], r["pass"], r["detail"])
-    # SAM_CONSENT=true run against a patched temp copy (never touches the repo)
-    tmp = tempfile.mkdtemp(prefix="sc-sam-")
-    dst = os.path.join(tmp, "site")
-    shutil.copytree(REPO, dst, ignore=shutil.ignore_patterns(".git", "*.mp4", "out", "BRIEF.md", "PLAN.md"))
-    for rel, a, b in (("assets/tracking.js", "const SAM_CONSENT = false;", "const SAM_CONSENT = true;"),
-                      ("support-coordinators/start/index.html", "var SAM_CONSENT=false;", "var SAM_CONSENT=true;")):
-        p = os.path.join(dst, rel)
-        t = open(p, encoding="utf-8").read()
-        assert a in t, rel
-        open(p, "w", encoding="utf-8").write(t.replace(a, b))
-    s_sam = serve(dst, 8001)
-    res, err = harness(s_sam, 8001, "mode=sam")
-    s_sam.shutdown()
-    shutil.rmtree(tmp, ignore_errors=True)
-    if res is None:
-        check("sam harness produced output", False, err[-500:])
-    else:
-        for r in res:
-            check("[SAM_CONSENT=true copy] " + r["name"], r["pass"], r["detail"])
     os_runs()
     js_off()
     console_errors()
