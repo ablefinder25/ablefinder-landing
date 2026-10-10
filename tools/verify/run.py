@@ -81,7 +81,7 @@ def read(rel):
 
 def static_checks():
     files = ["support-coordinators/index.html", "support-coordinators/start/index.html", "assets/lp.css",
-             "assets/tracking.js", "assets/video/sc-request-under-a-minute.vtt", "assets/video/same-day-ian.vtt",
+             "assets/tracking.js", "assets/video/sc-request-under-a-minute.vtt", "assets/video/same-day-ana.vtt",
              "_headers", "index.html", "404.html", "README.md"]
     text = {f: read(f) for f in files}
     for f in files + ["assets/badge-app-store.svg", "assets/badge-google-play.svg"]:
@@ -132,9 +132,9 @@ def static_checks():
     sam_html = re.search(r"var SAM_CONSENT=(\w+);", text["support-coordinators/start/index.html"]).group(1)
     check("SAM_CONSENT equal in both places", sam_js == sam_html and sam_js in ("true", "false"), (sam_js, sam_html))
     check("VTT files start with WEBVTT", all(text[f].startswith("WEBVTT") for f in
-          ["assets/video/sc-request-under-a-minute.vtt", "assets/video/same-day-ian.vtt"]))
+          ["assets/video/sc-request-under-a-minute.vtt", "assets/video/same-day-ana.vtt"]))
     check("screen recording VTT has one cue", text["assets/video/sc-request-under-a-minute.vtt"].count("-->") == 1)
-    check("same-day VTT has Ian's lines, no placeholder", text["assets/video/same-day-ian.vtt"].count("-->") >= 2 and "[you to" not in text["assets/video/same-day-ian.vtt"])
+    check("same-day VTT has Ana's lines, no placeholder", text["assets/video/same-day-ana.vtt"].count("-->") >= 2 and "[you to" not in text["assets/video/same-day-ana.vtt"])
     check("brief VTT text exact", "Screen recording: a support coordinator posts a request in the AbleFinder app - service type, description, timing, location and preferences - then taps Create request." in text["assets/video/sc-request-under-a-minute.vtt"])
     check("tracking.js pixel params limited to five keys",
           re.search(r"store:.*position:.*audience:.*page:.*variant:", text["assets/tracking.js"], re.S) is not None)
@@ -143,12 +143,12 @@ def static_checks():
               "assets/badge-google-play.svg", "assets/fonts/jost-latin-400-normal.woff2",
               "assets/fonts/jost-latin-500-normal.woff2", "assets/fonts/jost-latin-600-normal.woff2"]
     for page, poster in (("support-coordinators/index.html", "assets/video/sc-request-under-a-minute-poster.jpg"),
-                         ("support-coordinators/start/index.html", "assets/video/same-day-ian-poster.jpg")):
+                         ("support-coordinators/start/index.html", "assets/video/same-day-ana-poster.jpg")):
         extra = ["assets/img/ana.jpg", "assets/img/ian.jpg", "assets/img/provider-view.jpg"] if page == "support-coordinators/index.html" else []
         total = sum(os.path.getsize(os.path.join(REPO, p)) for p in [page, poster] + common + extra)
         check("page weight excl. mp4 < 400,000 bytes: " + page, total < 400000, "%d bytes (html+css+js+3 fonts+logo+2 badges+poster)" % total)
     for rel in ["assets/img/logo-colour.png", "assets/img/logo-reverse.png", "assets/video/sc-request-under-a-minute.mp4",
-                "assets/video/same-day-ian.mp4", "assets/video/sc-request-under-a-minute-poster.jpg", "assets/video/same-day-ian-poster.jpg"]:
+                "assets/video/same-day-ana.mp4", "assets/video/sc-request-under-a-minute-poster.jpg", "assets/video/same-day-ana-poster.jpg"]:
         r = subprocess.run(["git", "-C", REPO, "diff", "--quiet", "--", rel])
         check("supplied file unmodified (not in git diff): " + rel, r.returncode == 0)
     check("OFL licence file present", os.path.getsize(os.path.join(REPO, "assets/fonts/OFL.txt")) > 1000)

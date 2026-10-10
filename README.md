@@ -18,7 +18,7 @@ Build command: none. Output directory: `/`.
 
 ## Placeholders
 
-Search the HTML and `assets/video/same-day-ian.vtt` for `[you to provide` and `[you to confirm`. Each is visible on the page until replaced.
+Search the HTML and `assets/video/same-day-ana.vtt` for `[you to provide` and `[you to confirm`. Each is visible on the page until replaced.
 
 ## Local check
 

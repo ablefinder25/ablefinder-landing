@@ -330,7 +330,7 @@
     drop(f);
     var g = await load(START, 375, 667);
     var t2 = norm(g.contentDocument.body.textContent).toLowerCase();
-    ["anonymous by default. your details stay private until you're ready.", "from the team behind able plus - 250+ able meet events and 15,000+ connections.", "our able2help team steps in", "three steps", "ian, co-founder, on a real coordinator's request."].forEach(function (s) {
+    ["anonymous by default. your details stay private until you're ready.", "from the team behind able plus - 250+ able meet events and 15,000+ connections.", "our able2help team steps in", "three steps", "ana, co-founder, on a real coordinator's request."].forEach(function (s) {
       ok("start copy present: " + s, t2.indexOf(s) > -1);
     });
     var vids2 = g.contentDocument.querySelectorAll("video");
