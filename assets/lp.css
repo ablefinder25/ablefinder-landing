@@ -172,3 +172,6 @@ html[data-os="android"] .sticky .store-badge--ios{display:none}
 .site-footer p{margin:0 0 8px}
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* Who built it - founder photos (real team photos only, never stock) */
+.person__photo{display:block;width:160px;height:160px;border-radius:50%;object-fit:cover;margin:0 0 12px}
