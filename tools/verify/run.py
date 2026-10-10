@@ -131,8 +131,10 @@ def static_checks():
     sam_js = re.search(r"const SAM_CONSENT = (\w+);", text["assets/tracking.js"]).group(1)
     sam_html = re.search(r"var SAM_CONSENT=(\w+);", text["support-coordinators/start/index.html"]).group(1)
     check("SAM_CONSENT equal in both places", sam_js == sam_html and sam_js in ("true", "false"), (sam_js, sam_html))
-    check("VTT files start with WEBVTT and one cue", all(text[f].startswith("WEBVTT") and text[f].count("-->") == 1 for f in
+    check("VTT files start with WEBVTT", all(text[f].startswith("WEBVTT") for f in
           ["assets/video/sc-request-under-a-minute.vtt", "assets/video/same-day-ian.vtt"]))
+    check("screen recording VTT has one cue", text["assets/video/sc-request-under-a-minute.vtt"].count("-->") == 1)
+    check("same-day VTT has Ian's lines, no placeholder", text["assets/video/same-day-ian.vtt"].count("-->") >= 2 and "[you to" not in text["assets/video/same-day-ian.vtt"])
     check("brief VTT text exact", "Screen recording: a support coordinator posts a request in the AbleFinder app - service type, description, timing, location and preferences - then taps Create request." in text["assets/video/sc-request-under-a-minute.vtt"])
     check("tracking.js pixel params limited to five keys",
           re.search(r"store:.*position:.*audience:.*page:.*variant:", text["assets/tracking.js"], re.S) is not None)
