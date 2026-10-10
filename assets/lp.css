@@ -176,3 +176,4 @@ html[data-os="android"] .sticky .store-badge--ios{display:none}
 /* Who built it - founder photos (real team photos only, never stock) */
 .person__photo{display:block;width:160px;height:160px;border-radius:50%;object-fit:cover;margin:0 0 12px}
 .footer-link{display:inline-flex;align-items:center;min-height:44px}
+.ui-shot{display:block;width:100%;max-width:280px;height:auto;margin:16px auto 0}

@@ -142,7 +142,7 @@ def static_checks():
               "assets/fonts/jost-latin-500-normal.woff2", "assets/fonts/jost-latin-600-normal.woff2"]
     for page, poster in (("support-coordinators/index.html", "assets/video/sc-request-under-a-minute-poster.jpg"),
                          ("support-coordinators/start/index.html", "assets/video/same-day-ian-poster.jpg")):
-        extra = ["assets/img/ana.jpg", "assets/img/ian.jpg"] if page == "support-coordinators/index.html" else []
+        extra = ["assets/img/ana.jpg", "assets/img/ian.jpg", "assets/img/provider-view.jpg"] if page == "support-coordinators/index.html" else []
         total = sum(os.path.getsize(os.path.join(REPO, p)) for p in [page, poster] + common + extra)
         check("page weight excl. mp4 < 400,000 bytes: " + page, total < 400000, "%d bytes (html+css+js+3 fonts+logo+2 badges+poster)" % total)
     for rel in ["assets/img/logo-colour.png", "assets/img/logo-reverse.png", "assets/video/sc-request-under-a-minute.mp4",
