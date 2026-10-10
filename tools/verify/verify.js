@@ -318,7 +318,7 @@
       ok("landing copy present: " + s, t.indexOf(s) > -1);
     });
     var ph = norm(f.contentDocument.body.textContent).match(/\[you to (provide|confirm)[^\]]*\]/g) || [];
-    ok("landing placeholders visible", ph.length >= 5, ph.length + " found");
+    ok("landing placeholders visible", ph.length >= 2, ph.length + " found");
     ok("landing has 5 find tiles and tile names", f.contentDocument.querySelectorAll(".tiles li").length === 5);
     ok("landing: Sam testimonial shown only when consent true", CONSENT ? shown(f.contentDocument.getElementById("sam-testimonial")) : !shown(f.contentDocument.getElementById("sam-testimonial")));
     var imgs = Array.prototype.every.call(f.contentDocument.images, function (i) { return i.hasAttribute("alt"); });

@@ -156,7 +156,7 @@ figcaption{font-size:1rem}
 .final .cta-note{margin-bottom:12px}
 .panel{margin-top:16px;padding:16px;border:2px solid var(--ink);border-radius:12px}
 .provider-line{font-size:1rem;margin:20px 0 0}
-.provider-line .placeholder{margin-top:8px}
+.provider-line a{display:inline-flex;align-items:center;min-height:44px}
 
 /* sticky bar */
 .sticky{position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--surface);box-shadow:0 -2px 12px rgba(5,63,92,.25);padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));min-height:var(--sticky-h)}
