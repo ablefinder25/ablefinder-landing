@@ -12,8 +12,7 @@
   const VARIANT = root.dataset.variant || "default";
 
   const APP_STORE_BASE = "https://apps.apple.com/au/app/ablefinder/id6751715948";
-  // TODO [you to provide: provider token from App Store Connect > App Analytics > Campaigns]
-  const APP_STORE_PT = "";
+  const APP_STORE_PT = "128092141";                       // App Store Connect provider token
   const PLAY_PACKAGE = "com.ablefinder.ablefinder";
   const WEB_APP_URL = "https://app.ablefinder.net.au";
 

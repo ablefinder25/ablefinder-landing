@@ -162,7 +162,7 @@
         var href = a.getAttribute("href");
         var ctWant = page + "-" + vname;
         var hrefOk = st === "ios"
-          ? href.indexOf("https://apps.apple.com/au/app/ablefinder/id6751715948?") === 0 && href.indexOf("ct=" + ctWant + "&mt=8") > -1
+          ? href.indexOf("https://apps.apple.com/au/app/ablefinder/id6751715948?pt=128092141&ct=") === 0 && href.indexOf("ct=" + ctWant + "&mt=8") > -1
           : href.indexOf("https://play.google.com/store/apps/details?id=com.ablefinder.ablefinder&referrer=") === 0 &&
             href.slice(-("utm_content%3D" + ctWant).length) === "utm_content%3D" + ctWant;
         ok(label + " " + pos + "/" + st + " store link carries ct " + ctWant, hrefOk, href);
