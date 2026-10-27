@@ -132,6 +132,9 @@
       .map(function (a) { return { params: a[2], opts: a[3] }; });
   }
 
+  function stubZaraz(w) { w.__z = []; w.zaraz = { track: function (n, p) { w.__z.push([n, p]); } }; }
+  function zEvents(w, name) { return (w.__z || []).filter(function (e) { return e[0] === name; }); }
+
   async function trackingChecks(base, page, variant, label) {
     var url = base + (variant ? "?c=" + variant : "");
     var vname = variant || "default";
@@ -167,6 +170,7 @@
             href.slice(-("utm_content%3D" + ctWant).length) === "utm_content%3D" + ctWant;
         ok(label + " " + pos + "/" + st + " store link carries ct " + ctWant, hrefOk, href);
         setHrefsInert(gd);
+        stubZaraz(gw);
         var ev1 = clickEv(gw, a);
         var evs = events(gw, "DownloadApp");
         var p = evs.length ? evs[0].params : {};
@@ -176,9 +180,17 @@
         Object.keys(want).forEach(function (k) { if (p[k] !== want[k]) { good = false; } });
         ok(label + " " + pos + "/" + st + " one DownloadApp, five params correct", good, JSON.stringify(p) + " n=" + evs.length);
         ok(label + " " + pos + "/" + st + " eventID present and click default prevented", !!(evs[0] && evs[0].opts && evs[0].opts.eventID) && ev1.defaultPrevented);
+        var zs = zEvents(gw, "app_store_click");
+        var zp = zs.length ? zs[0][1] : {};
+        var zwant = { store: st, position: pos === "participant" ? "panel" : pos, page: page, variant: vname };
+        var zgood = zs.length === 1 && Object.keys(zp).sort().join(",") === "page,position,store,variant" && (gw.__z || []).length === 1;
+        Object.keys(zwant).forEach(function (k) { if (zp[k] !== zwant[k]) { zgood = false; } });
+        ok(label + " " + pos + "/" + st + " one GA4 app_store_click, four params correct", zgood, JSON.stringify(gw.__z));
+        ok(label + " " + pos + "/" + st + " GA4 event has no 'participant'", JSON.stringify(gw.__z).toLowerCase().indexOf("participant") === -1, JSON.stringify(gw.__z));
         if (pos === "hero" && st === "ios") {
           clickEv(gw, a);
           ok(label + " fast double tap sends one event", events(gw, "DownloadApp").length === 1, events(gw, "DownloadApp").length);
+          ok(label + " fast double tap sends one GA4 event", zEvents(gw, "app_store_click").length === 1, zEvents(gw, "app_store_click").length);
         }
         drop(g);
       }
@@ -188,10 +200,22 @@
     var bd = b.contentDocument, bw = b.contentWindow;
     setHrefsInert(bd);
     bw.fbq = undefined;
+    stubZaraz(bw);
     var ba = bd.querySelector("#hero a[data-store='ios']");
     var bev = clickEv(bw, ba);
     ok(label + " with pixel blocked the store link is not intercepted", bev.defaultPrevented === false);
+    ok(label + " with pixel blocked GA4 app_store_click is still sent once", zEvents(bw, "app_store_click").length === 1, JSON.stringify(bw.__z));
     drop(b);
+    // neither Meta nor Zaraz present (both blocked): link still works, no error
+    var nb = await load(url, 1280, 900);
+    var nbd = nb.contentDocument, nbw = nb.contentWindow;
+    setHrefsInert(nbd);
+    nbw.fbq = undefined; nbw.zaraz = undefined;
+    var nbev = clickEv(nbw, nbd.querySelector("#hero a[data-store='android']"));
+    ok(label + " with Meta and Zaraz both blocked the store link still works", nbev.defaultPrevented === false);
+    drop(nb);
+    b = null;
+    if (b) { drop(b); }
 
     // OpenWebApp (needs no-touch 1024+, which this frame is)
     var o = await load(url, 1280, 900);
@@ -199,11 +223,13 @@
     var line = od.querySelector("#hero .webapp-line");
     ok(label + " laptop line visible at 1280 (no touch)", shown(line));
     setHrefsInert(od);
+    stubZaraz(ow);
     var wa = od.querySelector("#hero a[data-webapp]");
     clickEv(ow, wa);
     var we = events(ow, "OpenWebApp");
     ok(label + " OpenWebApp sent once with page and variant only", we.length === 1 && Object.keys(we[0].params).sort().join(",") === "page,variant" && we[0].params.page === page && we[0].params.variant === vname, JSON.stringify(we[0] && we[0].params));
     ok(label + " OpenWebApp did not send DownloadApp", events(ow, "DownloadApp").length === 0);
+    ok(label + " OpenWebApp sends nothing to GA4 (not in this brief)", (ow.__z || []).length === 0, JSON.stringify(ow.__z));
     drop(o);
   }
 

@@ -136,6 +136,10 @@ def static_checks():
     check("screen recording VTT has one cue", text["assets/video/sc-request-under-a-minute.vtt"].count("-->") == 1)
     check("same-day VTT has Ana's lines, no placeholder", text["assets/video/same-day-ana.vtt"].count("-->") >= 2 and "[you to" not in text["assets/video/same-day-ana.vtt"])
     check("brief VTT text exact", "Screen recording: a support coordinator posts a request in the AbleFinder app - service type, description, timing, location and preferences - then taps Create request." in text["assets/video/sc-request-under-a-minute.vtt"])
+    check("no Google tag on the pages (GA4 comes from Zaraz only)", all(not re.search(r"gtag|googletagmanager|google-analytics|G-[A-Z0-9]{6,}", text[f]) for f in
+          ["support-coordinators/index.html", "support-coordinators/start/index.html", "assets/tracking.js"]))
+    check("tracking.js sends exactly one zaraz event type (app_store_click)", re.findall(r'zTrack\("([a-z_]+)"', text["assets/tracking.js"]) == ["app_store_click"],
+          re.findall(r'zTrack\("([a-z_]+)"', text["assets/tracking.js"]))
     check("tracking.js pixel params limited to five keys",
           re.search(r"store:.*position:.*audience:.*page:.*variant:", text["assets/tracking.js"], re.S) is not None)
     # page weight excluding mp4

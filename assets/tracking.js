@@ -19,6 +19,12 @@
   let lastTap = 0;
   let lastWebTap = 0;
 
+  // GA4 through Cloudflare Zaraz (Zaraz loads GA4; no Google tag on the page)
+  function zTrack(name, params){
+    try { if (window.zaraz && typeof zaraz.track === "function") zaraz.track(name, params); }
+    catch (e) {}
+  }
+
   function newEventId() {
     return (window.crypto && crypto.randomUUID && crypto.randomUUID()) ||
            (Date.now().toString(36) + Math.random().toString(36).slice(2));
@@ -68,6 +74,13 @@
         page:     PIXEL_PAGE,
         variant:  VARIANT
       };
+      // Before the Meta blocked check, so a blocked pixel doesn't stop GA4. "participant" never goes to GA4.
+      zTrack("app_store_click", {
+        store:    params.store,
+        position: params.position === "participant" ? "panel" : params.position,
+        page:     params.page,
+        variant:  params.variant
+      });
       if (!send("DownloadApp", params, newEventId())) { return; }
       if (isModified(e)) { return; }
       e.preventDefault();
