@@ -15,6 +15,8 @@
   const APP_STORE_PT = "128092141";                       // App Store Connect provider token
   const PLAY_PACKAGE = "com.ablefinder.ablefinder";
   const WEB_APP_URL = "https://app.ablefinder.net.au";
+  // Off: the web app shows "Sign up to find support (Coming Soon)" (checked 27/10/2026). Turn on when it goes live.
+  const SHOW_WEB_APP_LINE = false;
 
   let lastTap = 0;
   let lastWebTap = 0;
@@ -106,7 +108,7 @@
   const wideQuery = window.matchMedia("(min-width:1024px)");
   const hasTouch = (navigator.maxTouchPoints || 0) > 0 || "ontouchstart" in window;
   function updateWebLine() {
-    const show = !hasTouch && wideQuery.matches;
+    const show = SHOW_WEB_APP_LINE && !hasTouch && wideQuery.matches;
     document.querySelectorAll(".webapp-line").forEach(function (el) { el.hidden = !show; });
   }
   updateWebLine();

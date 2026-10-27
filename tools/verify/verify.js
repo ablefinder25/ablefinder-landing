@@ -220,8 +220,9 @@
     // OpenWebApp (needs no-touch 1024+, which this frame is)
     var o = await load(url, 1280, 900);
     var od = o.contentDocument, ow = o.contentWindow;
-    var line = od.querySelector("#hero .webapp-line");
-    ok(label + " laptop line visible at 1280 (no touch)", shown(line));
+    // SHOW_WEB_APP_LINE is false in tracking.js (web app sign-up to find support is "Coming Soon"): the line stays hidden even on laptops.
+    var lines = Array.prototype.slice.call(od.querySelectorAll(".webapp-line"));
+    ok(label + " laptop line hidden at 1280 while web app sign-up is not live", lines.length >= 2 && lines.every(function (l) { return !shown(l); }), lines.length + " lines");
     setHrefsInert(od);
     stubZaraz(ow);
     var wa = od.querySelector("#hero a[data-webapp]");
