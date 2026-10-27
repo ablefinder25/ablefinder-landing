@@ -177,3 +177,35 @@ html[data-os="android"] .sticky .store-badge--ios{display:none}
 .person__photo{display:block;width:160px;height:160px;border-radius:50%;object-fit:cover;margin:0 0 12px}
 .footer-link{display:inline-flex;align-items:center;min-height:44px}
 .ui-shot{display:block;width:100%;max-width:280px;height:auto;margin:16px auto 0}
+
+/* ---- lead form gate ---- */
+/* Store buttons only after the form (html.unlocked). Without JavaScript they stay hidden; the form posts to /api/lead. */
+html:not(.unlocked) [data-gated]{display:none!important}
+html.unlocked [data-gate]{display:none!important}
+.lead{background:var(--surface);border-radius:var(--radius);padding:14px 16px 12px;margin-top:4px}
+.lead__h{font-size:1.125rem;line-height:1.25;margin:0 0 8px}
+.field{margin:0 0 8px}
+.field label{display:block;font-size:1rem;line-height:1.2;font-weight:600;margin:0 0 3px}
+.field input,.field select{display:block;width:100%;min-height:44px;padding:8px 12px;border:2px solid var(--ink);border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-size:1rem;line-height:1.3}
+.field select{appearance:none;-webkit-appearance:none;padding-right:40px;background-image:linear-gradient(45deg,transparent 50%,var(--ink) 50%),linear-gradient(135deg,var(--ink) 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 14px) 50%;background-size:6px 6px;background-repeat:no-repeat}
+.field input[aria-invalid="true"],.field select[aria-invalid="true"]{border-color:var(--accent-ink);border-width:3px}
+.field__error,.lead__error{font-size:1rem;line-height:1.3;font-weight:600;color:var(--accent-ink);margin:4px 0 0}
+.lead__error{margin:8px 0 0}
+.lead__btn{margin-top:4px}
+.lead__btn[disabled]{opacity:.75;cursor:progress}
+.lead__consent{font-size:.875rem;line-height:1.35;color:var(--ink);margin:8px 0 0}
+.lead__consent a{color:var(--ink);font-weight:600;display:inline-block;padding:13px 0;margin:-13px 0;min-width:44px}
+.lead__reassure{font-size:.875rem;line-height:1.35;color:var(--ink);margin:6px 0 0}
+.lead__ts:empty{display:none}
+.lead__ts{margin:4px 0}
+.hp{position:absolute!important;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}
+.lead__done{font-size:1.25rem;line-height:1.35;font-weight:600;margin:0 0 12px}
+.provider-next{font-size:1rem;margin:12px 0 0}
+.provider-next a{display:inline-flex;align-items:center;min-height:44px}
+.gate-btn{text-decoration:none}
+.gate-btn--header{min-height:48px;padding:10px 20px}
+.final .gate-btn,.panel .gate-btn{margin-top:12px}
+.sticky .gate-btn{margin-top:0}
+/* the short page keeps H1, free line and the whole form above the fold at 375 x 667 */
+body[data-page="sc-start"] .hero .h1{margin-bottom:.3em}
+body[data-page="sc-start"] .hero .lede{margin-bottom:10px}

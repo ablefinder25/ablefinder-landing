@@ -10,7 +10,8 @@ import functools, http.server, json, os, re, shutil, subprocess, sys, tempfile, 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 HOST_RULES = ("--host-resolver-rules=MAP connect.facebook.net 0.0.0.0, MAP www.facebook.com 0.0.0.0, "
-              "MAP *.on.aws 0.0.0.0, MAP *.run.app 0.0.0.0")
+              "MAP *.on.aws 0.0.0.0, MAP *.run.app 0.0.0.0, MAP challenges.cloudflare.com 0.0.0.0")
+# Turnstile is blocked too: the harness simulates it, so tests never depend on Cloudflare's live check.
 OUT = os.path.join(REPO, "tools", "verify", "out")
 results = []
 
@@ -25,9 +26,60 @@ class Quiet(http.server.SimpleHTTPRequestHandler):
 
     def do_POST(self):
         n = int(self.headers.get("Content-Length", 0))
-        self.server.result = self.rfile.read(n).decode("utf-8")
+        body = self.rfile.read(n).decode("utf-8")
+        if self.path.startswith("/api/lead"):
+            return self.fake_lead(body)
+        self.server.result = body
         self.send_response(204)
         self.end_headers()
+
+    # Stand-in for the Cloudflare function: GET /__mock?mode=... picks the answer, GET /__leads returns what was posted.
+    def fake_lead(self, body):
+        self.server.leads.append({"type": self.headers.get("Content-Type", ""), "body": body})
+        mode = self.server.mock_mode
+        try:
+            sent = json.loads(body)
+        except Exception:
+            sent = {}
+        if mode == "auto":
+            mode = "ok" if sent.get("turnstileToken") else "turnstile400"
+        answers = {
+            "ok": (200, {"ok": True, "first": "Mary Ann"}),
+            "ok_first_empty": (200, {"ok": True, "first": ""}),
+            "fallback": (200, {"ok": True, "fallback": True, "first": "Mary Ann"}),
+            "turnstile400": (400, {"error": "turnstile"}),
+            "phone400": (400, {"error": "phone"}),
+            "e500": (500, {"error": "config"}),
+        }
+        if mode == "e502html":
+            data = b"<html>Bad gateway</html>"
+            self.send_response(502)
+            self.send_header("Content-Type", "text/html")
+        else:
+            code, obj = answers.get(mode, answers["ok"])
+            data = json.dumps(obj).encode()
+            self.send_response(code)
+            self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_GET(self):
+        if self.path.startswith("/__mock"):
+            from urllib.parse import urlparse, parse_qs
+            self.server.mock_mode = parse_qs(urlparse(self.path).query).get("mode", ["ok"])[0]
+            self.server.leads = []
+            return self.small(b"ok")
+        if self.path.startswith("/__leads"):
+            return self.small(json.dumps(self.server.leads).encode(), "application/json")
+        return super().do_GET()
+
+    def small(self, data, ctype="text/plain"):
+        self.send_response(200)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
 
     def end_headers(self):
         self.send_header("Cache-Control", "no-store")
@@ -38,6 +90,8 @@ def serve(directory, port):
     handler = functools.partial(Quiet, directory=directory)
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
     srv.result = None
+    srv.mock_mode = "ok"
+    srv.leads = []
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     return srv
 
@@ -79,10 +133,42 @@ def read(rel):
         return f.read()
 
 
+def lead_static(text):
+    fn = text["functions/api/lead.js"]
+    consent_fn = re.search(r'CONSENT_TEXT = "([^"]+)"', fn).group(1)
+    tj = text["assets/tracking.js"]
+    check("form never fires the restricted standard Lead event", not re.search(r'fbq\(\s*"track"\s*,\s*"Lead"', tj))
+    check("form fires custom SubmitLeadForm with page and variant only",
+          'fbq("trackCustom", "SubmitLeadForm", { page: PIXEL_PAGE, variant: VARIANT }, { eventID: newEventId() })' in tj)
+    check("generate_lead sends page and variant only", 'zTrack("generate_lead", { page: PIXEL_PAGE, variant: VARIANT })' in tj)
+    check("no secret values in the repo files", not re.search(r'(refresh_token|client_secret|TURNSTILE_SECRET)\s*[:=]\s*"[A-Za-z0-9._-]{12,}"', fn + tj))
+    check("function never logs name, email or phone", not re.search(r'console\.(error|log)\([^)]*(\bname\b|email|phone|record\b|payload|b\.)', fn), re.findall(r'console\.[a-z]+\([^;]*', fn))
+    try:
+        r = json.loads(text["_routes.json"])
+        check("_routes.json limits the function to /api/*", r.get("include") == ["/api/*"] and r.get("version") == 1)
+    except Exception as e:
+        check("_routes.json is valid JSON", False, e)
+    for f in ["support-coordinators/index.html", "support-coordinators/start/index.html"]:
+        t = text[f]
+        check(f + " consent line matches the function word for word", (consent_fn + ' <a href="https://www.ablefinder.net.au/privacy-policy" target="_blank" rel="noopener">Privacy policy</a>') in t)
+        check(f + " reassurance line exact", "This is just so our team can help you get started. Your requests in the app stay anonymous - providers never see these details." in t)
+        check(f + " one form only", t.count("<form") == 1 and t.count('id="lead-form"') == 1)
+        check(f + " every store-button group is gated", t.count('<div class="store-badges"') == t.count('<div class="store-badges" data-gated>') and t.count('<div class="store-badges" data-gated>') == 5)
+        labels = re.findall(r'<label for="lf-[a-z]+">([^<]+)</label>', t)
+        check(f + " visible labels exact", labels == ["Your name", "Email", "Phone (optional)", "I'm a...", "Company"], labels)
+        check(f + " phone not required", re.search(r'<input id="lf-phone"[^>]*>', t) and "required" not in re.search(r'<input id="lf-phone"[^>]*>', t).group(0))
+        check(f + " role has disabled 'Choose one' first, three roles, nothing preselected",
+              '<option value="" disabled selected>Choose one</option><option value="support_coordinator">Support coordinator</option><option value="participant_carer">Participant or carer</option><option value="provider">Provider</option>' in t)
+        check(f + " honeypot company not tabbable", re.search(r'<input id="lf-company" name="company" type="text" tabindex="-1" autocomplete="off">', t) is not None)
+        check(f + " form posts to /api/lead without JavaScript", '<form id="lead-form" class="lead__form" method="post" action="/api/lead"' in t)
+        check(f + " field limits", 'maxlength="80"' in t and 'maxlength="120"' in t and 'maxlength="20"' in t)
+        check(f + " no extra fields", set(re.findall(r'name="([a-z_]+)"', t.split('<form',1)[1].split('</form>')[0])) == {"page", "variant", "name", "email", "phone", "role", "company"})
+
+
 def static_checks():
     files = ["support-coordinators/index.html", "support-coordinators/start/index.html", "assets/lp.css",
              "assets/tracking.js", "assets/video/sc-request-under-a-minute.vtt", "assets/video/same-day-ana.vtt",
-             "_headers", "index.html", "404.html", "README.md"]
+             "_headers", "index.html", "404.html", "README.md", "functions/api/lead.js", "_routes.json"]
     text = {f: read(f) for f in files}
     for f in files + ["assets/badge-app-store.svg", "assets/badge-google-play.svg"]:
         data = open(os.path.join(REPO, f), encoding="utf-8").read()
@@ -101,7 +187,7 @@ def static_checks():
           ["assets/tracking.js", "support-coordinators/index.html", "support-coordinators/start/index.html"]))
     # no other platform / tracker hosts
     allowed = {"apps.apple.com", "play.google.com", "app.ablefinder.net.au", "connect.facebook.net", "www.facebook.com",
-               "www.ablefinder.net.au"}
+               "www.ablefinder.net.au", "challenges.cloudflare.com"}
     for f in ["support-coordinators/index.html", "support-coordinators/start/index.html", "assets/lp.css", "assets/tracking.js"]:
         hosts = set(re.findall(r"https?://([a-zA-Z0-9.-]+)", text[f]))
         check("only allowed external hosts in " + f, hosts <= allowed, hosts - allowed)
@@ -122,6 +208,7 @@ def static_checks():
         check(f + " every data-store anchor has a real store href", all(
             re.search(r'href="https://(apps\.apple\.com|play\.google\.com)/', a) for a in re.findall(r'<a [^>]*data-store[^>]*>', t)))
         check(f + " no target attr on store links", not re.search(r'<a [^>]*data-store[^>]*target=', t))
+    lead_static(text)
     titles = [re.search(r"<title>(.*?)</title>", text[f]).group(1) for f in
               ["support-coordinators/index.html", "support-coordinators/start/index.html"]]
     descs = [re.search(r'name="description" content="(.*?)"', text[f]).group(1) for f in
@@ -138,7 +225,7 @@ def static_checks():
     check("brief VTT text exact", "Screen recording: a support coordinator posts a request in the AbleFinder app - service type, description, timing, location and preferences - then taps Create request." in text["assets/video/sc-request-under-a-minute.vtt"])
     check("no Google tag on the pages (GA4 comes from Zaraz only)", all(not re.search(r"gtag|googletagmanager|google-analytics|G-[A-Z0-9]{6,}", text[f]) for f in
           ["support-coordinators/index.html", "support-coordinators/start/index.html", "assets/tracking.js"]))
-    check("tracking.js sends exactly one zaraz event type (app_store_click)", re.findall(r'zTrack\("([a-z_]+)"', text["assets/tracking.js"]) == ["app_store_click"],
+    check("tracking.js sends exactly two zaraz event types (app_store_click, generate_lead)", sorted(re.findall(r'zTrack\("([a-z_]+)"', text["assets/tracking.js"])) == ["app_store_click", "generate_lead"],
           re.findall(r'zTrack\("([a-z_]+)"', text["assets/tracking.js"]))
     check("tracking.js pixel params limited to five keys",
           re.search(r"store:.*position:.*audience:.*page:.*variant:", text["assets/tracking.js"], re.S) is not None)

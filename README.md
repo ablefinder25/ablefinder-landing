@@ -15,6 +15,28 @@ Build command: none. Output directory: `/`.
 
 - `SAM_CONSENT` in `assets/tracking.js` and in the inline script in `support-coordinators/start/index.html`. Keep both equal. Setting both to `true` enables the `?c=days` variant and the testimonial on the landing page.
 - `APP_STORE_PT` in `assets/tracking.js`: App Store provider token.
+- `SHOW_WEB_APP_LINE` in `assets/tracking.js`: the laptop "Open AbleFinder in your browser" line. Off until web sign-up to find support is live.
+- `TURNSTILE_SITE_KEY` in `assets/tracking.js`: the public Turnstile site key. It ships with Cloudflare's always-pass test key; replace it before launch.
+
+## Lead form (`functions/api/lead.js`)
+
+The store buttons appear after the form in the hero (`html.unlocked`, remembered as `af_unlocked` in localStorage). The form posts to `/api/lead`, a Cloudflare Pages Function that saves the contact to Bigin (tag `SC WSYD LP`). If Bigin fails, the payload goes to the KV namespace `LEADS_FALLBACK` (90 days) and the page still unlocks. Without JavaScript there is no bot check, so the contact is not saved, but the visitor still gets the store buttons.
+
+On success the page fires the Meta custom event `SubmitLeadForm` (page and variant only - the standard `Lead` is restricted on this dataset) and the GA4 event `generate_lead` through Zaraz.
+
+Cloudflare Pages > Settings > Variables and Secrets (Production and Preview, encrypted):
+
+| Name | What |
+|---|---|
+| `TURNSTILE_SECRET` | Turnstile secret key |
+| `BIGIN_CLIENT_ID`, `BIGIN_CLIENT_SECRET`, `BIGIN_REFRESH_TOKEN` | Zoho Self Client (scopes `ZohoBigin.modules.contacts.ALL,ZohoBigin.settings.fields.READ`) |
+| `BIGIN_ACCOUNTS_URL` | `https://accounts.zoho.com.au` (or `.com` if Bigin is on the US data centre) |
+| `BIGIN_API_BASE` | `https://www.zohoapis.com.au/bigin/v2` |
+| `BIGIN_FIELD_ROLE`, `BIGIN_FIELD_SOURCE`, `BIGIN_FIELD_PAGE`, `BIGIN_FIELD_UTM_CONTENT`, `BIGIN_FIELD_CONSENT`, `BIGIN_FIELD_CONSENT_TEXT` | API names of the custom fields AF Role, AF Source, AF Page, AF UTM Content, AF Consent, AF Consent Text |
+
+Bindings: KV namespace `LEADS_FALLBACK`. Never commit a secret.
+
+The consent line on both pages and `CONSENT_TEXT` in the function must match word for word (the local check tests it).
 
 ## Placeholders
 
