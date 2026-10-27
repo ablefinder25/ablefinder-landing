@@ -117,7 +117,7 @@
 
   // ---- lead form gate ----
   // The store buttons only appear after the form (html.unlocked). One form per page, in the hero.
-  const TURNSTILE_SITE_KEY = "1x00000000000000000000AA";   // TODO before launch: real Turnstile site key (this one is Cloudflare's always-pass test key)
+  const TURNSTILE_SITE_KEY = "0x4AAAAAAFns13xBPzuX6Sh6";   // public Turnstile site key (widget for go.ablefinder.net.au and ablefinder-landing.pages.dev)
   const form = document.getElementById("lead-form");
   const nameInput = document.getElementById("lf-name");
   const roleSelect = document.getElementById("lf-role");

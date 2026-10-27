@@ -16,7 +16,7 @@ Build command: none. Output directory: `/`.
 - `SAM_CONSENT` in `assets/tracking.js` and in the inline script in `support-coordinators/start/index.html`. Keep both equal. Setting both to `true` enables the `?c=days` variant and the testimonial on the landing page.
 - `APP_STORE_PT` in `assets/tracking.js`: App Store provider token.
 - `SHOW_WEB_APP_LINE` in `assets/tracking.js`: the laptop "Open AbleFinder in your browser" line. Off until web sign-up to find support is live.
-- `TURNSTILE_SITE_KEY` in `assets/tracking.js`: the public Turnstile site key. It ships with Cloudflare's always-pass test key; replace it before launch.
+- `TURNSTILE_SITE_KEY` in `assets/tracking.js`: the public Turnstile site key (the secret key lives only in Cloudflare as `TURNSTILE_SECRET`).
 
 ## Lead form (`functions/api/lead.js`)
 
