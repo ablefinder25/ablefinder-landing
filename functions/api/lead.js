@@ -67,8 +67,8 @@ async function verifyTurnstile(token, secret, ip) {
   try {
     const r = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: fd });
     const j = await r.json();
-    return j && j.success === true;
-  } catch (e) { return false; }
+    return { ok: !!j && j.success === true, codes: (j && j["error-codes"]) || [] };
+  } catch (e) { return { ok: false, codes: ["siteverify-unreachable"] }; }
 }
 
 let cachedToken = null;   // reused while this worker instance is warm
@@ -170,8 +170,8 @@ export async function onRequestPost(context) {
 
   // 2. Turnstile
   if (!env.TURNSTILE_SECRET) { console.error("TURNSTILE_SECRET not set"); return json(500, { error: "config" }); }
-  const passed = await verifyTurnstile(String(b.turnstileToken || ""), env.TURNSTILE_SECRET, request.headers.get("CF-Connecting-IP"));
-  if (!passed) { return json(400, { error: "turnstile" }); }
+  const ts = await verifyTurnstile(String(b.turnstileToken || ""), String(env.TURNSTILE_SECRET).trim(), request.headers.get("CF-Connecting-IP"));
+  if (!ts.ok) { return json(400, { error: "turnstile", codes: ts.codes }); }   // Cloudflare's error codes only, e.g. invalid-input-secret
 
   // 3. validation
   const name = String(b.name || "").trim();
