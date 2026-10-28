@@ -3,7 +3,7 @@
 // Delete this file before merging to main.
 
 const EXPECTED = {
-  BIGIN_FIELD_ROLE: "AF_Role", BIGIN_FIELD_SOURCE: "AF_Source", BIGIN_FIELD_PAGE: "AF_Page",
+  BIGIN_FIELD_ROLE: "AF_Source", BIGIN_FIELD_SOURCE: "AF_Source1", BIGIN_FIELD_PAGE: "AF_Page",
   BIGIN_FIELD_UTM_CONTENT: "AF_UTM_Content", BIGIN_FIELD_CONSENT: "AF_Consent", BIGIN_FIELD_CONSENT_TEXT: "AF_Consent_Text"
 };
 
@@ -42,7 +42,7 @@ export async function onRequestGet(context) {
   out.fields = { status: f.status, code: fj.code || null };
   const list = (fj.fields || []);
   out.custom_fields = list.filter(function (x) { return x.custom_field; })
-    .map(function (x) { return { label: x.field_label, api_name: x.api_name, type: x.data_type, length: x.length }; });
+    .map(function (x) { return { label: x.field_label, api_name: x.api_name, type: x.data_type, length: x.length, options: (x.pick_list_values || []).map(function (v) { return v.actual_value; }) }; });
   const names = list.map(function (x) { return x.api_name; });
   out.expected = {};
   Object.keys(EXPECTED).forEach(function (k) {

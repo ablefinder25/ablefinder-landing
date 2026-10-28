@@ -32,7 +32,7 @@ Cloudflare Pages > Settings > Variables and Secrets (Production and Preview, enc
 | `BIGIN_CLIENT_ID`, `BIGIN_CLIENT_SECRET`, `BIGIN_REFRESH_TOKEN` | Zoho Self Client (scopes `ZohoBigin.modules.contacts.ALL,ZohoBigin.settings.fields.READ`) |
 | `BIGIN_ACCOUNTS_URL` | `https://accounts.zoho.com.au` (or `.com` if Bigin is on the US data centre) |
 | `BIGIN_API_BASE` | `https://www.zohoapis.com.au/bigin/v2` |
-| `BIGIN_FIELD_ROLE`, `BIGIN_FIELD_SOURCE`, `BIGIN_FIELD_PAGE`, `BIGIN_FIELD_UTM_CONTENT`, `BIGIN_FIELD_CONSENT`, `BIGIN_FIELD_CONSENT_TEXT` | API names of the custom fields AF Role, AF Source, AF Page, AF UTM Content, AF Consent, AF Consent Text |
+| `BIGIN_FIELD_ROLE`, `BIGIN_FIELD_SOURCE`, `BIGIN_FIELD_PAGE`, `BIGIN_FIELD_UTM_CONTENT`, `BIGIN_FIELD_CONSENT`, `BIGIN_FIELD_CONSENT_TEXT` | Only if the API names change. Defaults: AF Role `AF_Source`, AF Source `AF_Source1`, AF Page `AF_Page`, AF UTM Content `AF_UTM_Content`, AF Consent `AF_Consent`, AF Consent Text `AF_Consent_Text` |
 
 Bindings: KV namespace `LEADS_FALLBACK`. Never commit a secret.
 

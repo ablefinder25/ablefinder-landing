@@ -12,10 +12,11 @@ const MAX_BODY = 10000;
 const KV_TTL = 90 * 24 * 60 * 60;
 
 // Bigin custom field API names: set these in Cloudflare (Settings > Variables), no code change needed.
+// Bigin API names as created in this account: "AF Role" got AF_Source and "AF Source" got AF_Source1.
 function fieldNames(env) {
   return {
-    role: env.BIGIN_FIELD_ROLE || "AF_Role",
-    source: env.BIGIN_FIELD_SOURCE || "AF_Source",
+    role: env.BIGIN_FIELD_ROLE || "AF_Source",
+    source: env.BIGIN_FIELD_SOURCE || "AF_Source1",
     page: env.BIGIN_FIELD_PAGE || "AF_Page",
     utmContent: env.BIGIN_FIELD_UTM_CONTENT || "AF_UTM_Content",
     consent: env.BIGIN_FIELD_CONSENT || "AF_Consent",

@@ -678,7 +678,7 @@
     ok("fn: upsert to Bigin AU, matched on Email, with OAuth header", r.up && r.up.url === "https://www.zohoapis.com.au/bigin/v2/Contacts/upsert" && JSON.parse(r.up.body).duplicate_check_fields.join() === "Email" && r.up.headers.Authorization === "Zoho-oauthtoken AT");
     ok("fn: Mary Ann Lee -> First 'Mary Ann', Last 'Lee'; email lower-cased", r.rec && r.rec.First_Name === "Mary Ann" && r.rec.Last_Name === "Lee" && r.rec.Email === "test@example.com", JSON.stringify(r.rec));
     ok("fn: blank phone -> no Mobile or Phone sent", r.rec && !("Mobile" in r.rec) && !("Phone" in r.rec));
-    ok("fn: role, source, page, UTM content, tag", r.rec && r.rec.AF_Role === "Support coordinator" && r.rec.AF_Source === "meta-lp" && r.rec.AF_Page === "sc-landing-private" && r.rec.AF_UTM_Content === "S2 test" && JSON.stringify(r.rec.Tag) === '[{"name":"SC WSYD LP"}]');
+    ok("fn: role, source, page, UTM content, tag", r.rec && r.rec.AF_Source === "Support coordinator" && r.rec.AF_Source1 === "meta-lp" && r.rec.AF_Page === "sc-landing-private" && r.rec.AF_UTM_Content === "S2 test" && JSON.stringify(r.rec.Tag) === '[{"name":"SC WSYD LP"}]');
     ok("fn: consent time is ISO 8601 Sydney time", r.rec && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\+1[01]:00$/.test(r.rec.AF_Consent), r.rec && r.rec.AF_Consent);
     ok("fn: consent text matches the page word for word", r.rec && consentPage && r.rec.AF_Consent_Text === consentPage, (r.rec && r.rec.AF_Consent_Text) + " | " + consentPage);
     ok("fn: success -> 200 { ok, first: 'Mary Ann' }", r.status === 200 && r.j.ok === true && r.j.first === "Mary Ann" && !r.j.fallback);
@@ -694,7 +694,7 @@
     r = await run({ body: { phone: "07 3000 1234" } });
     ok("fn: 07 3000 1234 -> Phone +61730001234", r.rec.Phone === "+61730001234");
     r = await run({ env: { BIGIN_FIELD_ROLE: "Role_API", BIGIN_FIELD_PAGE: "Page_API" } });
-    ok("fn: custom field API names come from settings", r.rec.Role_API === "Support coordinator" && r.rec.Page_API === "sc-landing-private" && !("AF_Role" in r.rec));
+    ok("fn: custom field API names come from settings", r.rec.Role_API === "Support coordinator" && r.rec.Page_API === "sc-landing-private" && !("AF_Source" in r.rec));
     r = await run({ cfg: { upsert: 404, search: "found" } });
     var put = r.calls.filter(function (c) { return /\/Contacts$/.test(c.url); })[0];
     ok("fn: no upsert on the account -> search by email, update the existing contact (no duplicate)", put && put.method === "PUT" && JSON.parse(put.body).data[0].id === "99" && r.j.ok === true && !r.j.fallback);
