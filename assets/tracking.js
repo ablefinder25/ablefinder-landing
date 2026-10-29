@@ -27,6 +27,24 @@
     catch (e) {}
   }
 
+  // Meta's ad review and other crawlers open the pages and tap the store buttons. Their taps still
+  // open the store but are not counted. Taps from real people take more than a second after load.
+  const PAGE_LOADED_AT = Date.now();
+  function isLikelyBot(evt){
+    try {
+      const test = window.__afTestHuman;                          // local checks only: headless Chrome looks like a bot
+      if (test === true) return false;                            // true = treat as a person; "timing" = keep the 1-second rule
+      if (test !== "timing") {
+        if (evt && evt.isTrusted === false) return true;            // click made by a script, not a finger
+        if (navigator.webdriver === true) return true;               // automated browser
+        const ua = navigator.userAgent || "";
+        if (/bot|crawl|spider|slurp|facebookexternalhit|facebookcatalog|meta-externalagent|headless|lighthouse/i.test(ua)) return true;
+      }
+      if (Date.now() - PAGE_LOADED_AT < 1000) return true;         // tapped within 1 second of load
+      return false;
+    } catch (e) { return false; }                                  // if unsure, count it
+  }
+
   function newEventId() {
     return (window.crypto && crypto.randomUUID && crypto.randomUUID()) ||
            (Date.now().toString(36) + Math.random().toString(36).slice(2));
@@ -66,6 +84,7 @@
 
     const a = target.closest("a[data-store]");
     if (a) {
+      if (isLikelyBot(e)) { return; }                         // no events; the link still opens the store
       const now = Date.now();
       if (now - lastTap < 1500) { return; }                  // ignore double-taps
       lastTap = now;
