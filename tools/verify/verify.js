@@ -36,7 +36,10 @@
     return new Promise(function (res) {
       var f = document.createElement("iframe");
       f.style.width = w + "px"; f.style.height = h + "px";
-      f.onload = function () { setTimeout(function () { res(f); }, 200); };
+      f.onload = function () {
+        try { f.contentWindow.__afTestHuman = true; } catch (e) {}   /* headless Chrome looks like a bot; botChecks() turns this off */
+        setTimeout(function () { res(f); }, 200);
+      };
       f.src = path;
       document.body.appendChild(f);
     });
@@ -232,6 +235,43 @@
     ok(label + " OpenWebApp did not send DownloadApp", events(ow, "DownloadApp").length === 0);
     ok(label + " OpenWebApp sends nothing to GA4 (not in this brief)", (ow.__z || []).length === 0, JSON.stringify(ow.__z));
     drop(o);
+  }
+
+  // Bot taps (script clicks, automated browsers, taps within 1 second of load) open the store but send no events.
+  async function botChecks(base, label) {
+    var f = await load(base, 1280, 900);
+    var d = f.contentDocument, w = f.contentWindow;
+    setHrefsInert(d); stubZaraz(w);
+    w.__afTestHuman = undefined;
+    var a = d.querySelector("#hero a[data-store='ios']");
+    var ev = clickEv(w, a);
+    ok(label + " script click (isTrusted false / headless) sends no DownloadApp", events(w, "DownloadApp").length === 0, events(w, "DownloadApp").length);
+    ok(label + " script click sends no GA4 app_store_click", zEvents(w, "app_store_click").length === 0, JSON.stringify(w.__z));
+    ok(label + " script click still opens the store (not prevented)", ev.defaultPrevented === false);
+    drop(f);
+
+    var g = document.createElement("iframe");
+    g.style.width = "1280px"; g.style.height = "900px";
+    var early = await new Promise(function (res) {
+      g.onload = function () {
+        var gw = g.contentWindow, gd = g.contentDocument;
+        gw.__afTestHuman = "timing";
+        setHrefsInert(gd); stubZaraz(gw);
+        var e1 = clickEv(gw, gd.querySelector("#hero a[data-store='android']"));
+        res({ dl: events(gw, "DownloadApp").length, z: zEvents(gw, "app_store_click").length, prevented: e1.defaultPrevented });
+      };
+      g.src = base;
+      document.body.appendChild(g);
+    });
+    ok(label + " tap within 1 second of load sends no events", early.dl === 0 && early.z === 0, JSON.stringify(early));
+    ok(label + " tap within 1 second of load still opens the store", early.prevented === false);
+    await sleep(1100);
+    var gw2 = g.contentWindow, gd2 = g.contentDocument;
+    var e2 = clickEv(gw2, gd2.querySelector("#hero a[data-store='android']"));
+    ok(label + " tap after 1 second sends one DownloadApp and one app_store_click",
+       events(gw2, "DownloadApp").length === 1 && zEvents(gw2, "app_store_click").length === 1 && e2.defaultPrevented,
+       events(gw2, "DownloadApp").length + "/" + zEvents(gw2, "app_store_click").length);
+    drop(g);
   }
 
   async function laptopLineHidden(base, label) {
@@ -451,6 +491,8 @@
           await trackingChecks(START, "sc-start", "sameday", "start sameday");
           await trackingChecks(START, "sc-start", "tonight", "start tonight");
           if (CONSENT) { await trackingChecks(START, "sc-start", "days", "start days"); }
+          await botChecks(LAND, "landing");
+          await botChecks(START, "start");
           await contentChecks();
           await tapTargets();
         }
