@@ -38,6 +38,10 @@ Bindings: KV namespace `LEADS_FALLBACK`. Never commit a secret.
 
 The consent line on both pages and `CONSENT_TEXT` in the function must match word for word (the local check tests it).
 
+## Cache
+
+Browsers keep `/assets/*` for up to 4 hours. When `lp.css` or `tracking.js` changes, bump the `?v=` date on their links in both pages (and on `lp.css` in `functions/api/lead.js`) so returning visitors get the new files with the new HTML.
+
 ## Placeholders
 
 Search the HTML and `assets/video/same-day-ana.vtt` for `[you to provide` and `[you to confirm`. Each is visible on the page until replaced.

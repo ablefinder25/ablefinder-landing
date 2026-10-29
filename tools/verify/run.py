@@ -203,7 +203,7 @@ def static_checks():
         imgs = re.findall(r"<img\b[^>]*>", t)
         check(f + " every img has alt", all(" alt=" in i for i in imgs))
         check(f + " no autoplay", "autoplay" not in t)
-        check(f + " single tracking.js include", t.count('<script src="/assets/tracking.js">') == 1)
+        check(f + " single tracking.js include", len(re.findall(r'<script src="/assets/tracking\.js(\?v=\d{8})?"></script>', t)) == 1)
         check(f + " no inline event handlers", not re.search(r"\son(click|load|error)=", t))
         check(f + " every data-store anchor has a real store href", all(
             re.search(r'href="https://(apps\.apple\.com|play\.google\.com)/', a) for a in re.findall(r'<a [^>]*data-store[^>]*>', t)))

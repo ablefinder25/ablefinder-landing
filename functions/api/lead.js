@@ -141,7 +141,7 @@ export function thankYouPage(page, variant) {
   const play = "https://play.google.com/store/apps/details?id=com.ablefinder.ablefinder&referrer=" +
     encodeURIComponent("utm_source=meta&utm_medium=paid_social&utm_campaign=sc-wsyd&utm_content=" + ct);
   return '<!doctype html><html lang="en-AU" class="unlocked"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
-    '<title>Get the app | AbleFinder</title><meta name="robots" content="noindex"><link rel="stylesheet" href="/assets/lp.css"></head>' +
+    '<title>Get the app | AbleFinder</title><meta name="robots" content="noindex"><link rel="stylesheet" href="/assets/lp.css?v=20261029"></head>' +
     '<body data-page="' + esc(page) + '"><header class="site-header"><div class="wrap site-header__in"><a id="logo" href="/support-coordinators/"><img src="/assets/img/logo-colour.png" alt="AbleFinder - finding NDIS support should be simple" width="152" height="40"></a></div></header>' +
     '<main id="main"><section class="sec hero"><div class="wrap"><p class="lead__done">You\'re in. Download AbleFinder and post your first request.</p>' +
     '<div class="store-badges"><a href="' + esc(ios) + '" class="store-badge store-badge--ios"><img src="/assets/badge-app-store.svg" alt="Download AbleFinder on the App Store" width="144" height="48"></a>' +
