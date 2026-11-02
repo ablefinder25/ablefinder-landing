@@ -138,8 +138,8 @@ def lead_static(text):
     consent_fn = re.search(r'CONSENT_TEXT = "([^"]+)"', fn).group(1)
     tj = text["assets/tracking.js"]
     check("form never fires the restricted standard Lead event", not re.search(r'fbq\(\s*"track"\s*,\s*"Lead"', tj))
-    check("form fires custom SubmitLeadForm with page and variant only",
-          'fbq("trackCustom", "SubmitLeadForm", { page: PIXEL_PAGE, variant: VARIANT }, { eventID: newEventId() })' in tj)
+    check("form fires custom GetAppForm with page and variant only",
+          'fbq("trackCustom", "GetAppForm", { page: PIXEL_PAGE, variant: VARIANT }, { eventID: newEventId() })' in tj)
     check("generate_lead sends page and variant only", 'zTrack("generate_lead", { page: PIXEL_PAGE, variant: VARIANT })' in tj)
     check("no secret values in the repo files", not re.search(r'(refresh_token|client_secret|TURNSTILE_SECRET)\s*[:=]\s*"[A-Za-z0-9._-]{12,}"', fn + tj))
     check("function never logs name, email or phone", not re.search(r'console\.(error|log)\([^)]*(\bname\b|email|phone|record\b|payload|b\.)', fn), re.findall(r'console\.[a-z]+\([^;]*', fn))

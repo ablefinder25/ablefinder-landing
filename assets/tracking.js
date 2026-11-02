@@ -226,10 +226,11 @@
   }
 
   function leadEvents() {
-    // Custom event: Meta restricts the standard "Lead" on this dataset. Only page and variant - never anything typed.
+    // Custom event: Meta restricts the standard "Lead" on this dataset, and its pixel also drops "SubmitLeadForm"
+    // (checked 02/11/2026). Only page and variant - never anything typed.
     zTrack("generate_lead", { page: PIXEL_PAGE, variant: VARIANT });
     if (typeof window.fbq === "function") {
-      try { fbq("trackCustom", "SubmitLeadForm", { page: PIXEL_PAGE, variant: VARIANT }, { eventID: newEventId() }); } catch (err) {}
+      try { fbq("trackCustom", "GetAppForm", { page: PIXEL_PAGE, variant: VARIANT }, { eventID: newEventId() }); } catch (err) {}
     }
   }
 

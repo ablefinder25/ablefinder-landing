@@ -579,7 +579,7 @@
     fill(d, { name: "Mary Ann Lee", email: "test@example.com", phone: "12345", role: "support_coordinator" });
     await submitAndWait(d, w, 1500);
     ok(label + " phone 12345: phone error, nothing sent", norm(d.getElementById("lf-phone-err").textContent) === "Please check your phone number, or leave it blank." && (await leads()).length === 0);
-    ok(label + " still locked after errors, no events", !d.documentElement.classList.contains("unlocked") && events(w, "SubmitLeadForm").length === 0 && zEvents(w, "generate_lead").length === 0);
+    ok(label + " still locked after errors, no events", !d.documentElement.classList.contains("unlocked") && events(w, "GetAppForm").length === 0 && zEvents(w, "generate_lead").length === 0);
     drop(f);
   }
 
@@ -604,8 +604,8 @@
     ok(label + " unlocked: final CTA shows store buttons, no 'Get the app'", Array.prototype.filter.call(d.querySelectorAll("#final-cta .final > .store-badges a[data-store]"), shown).length === 2 && !shown(d.querySelector("#final-cta .final > .gate-btn")));
     jump(w, d.getElementById("hero").getBoundingClientRect().bottom + w.scrollY + 40); await frames(); await sleep(300);
     ok(label + " unlocked: sticky shows store buttons", Array.prototype.filter.call(d.querySelectorAll("#sticky a[data-store]"), shown).length >= 1 && !shown(d.querySelector("#sticky .gate-btn")));
-    var ev = events(w, "SubmitLeadForm");
-    ok(label + " one SubmitLeadForm with page and variant only", ev.length === 1 && Object.keys(ev[0].params).sort().join(",") === "page,variant" && ev[0].params.page === page && ev[0].params.variant === variant && !!ev[0].opts.eventID, JSON.stringify(ev));
+    var ev = events(w, "GetAppForm");
+    ok(label + " one GetAppForm with page and variant only", ev.length === 1 && Object.keys(ev[0].params).sort().join(",") === "page,variant" && ev[0].params.page === page && ev[0].params.variant === variant && !!ev[0].opts.eventID, JSON.stringify(ev));
     var std = Array.prototype.filter.call(w.fbq.queue || [], function (a) { return a[1] === "Lead"; }).length;
     ok(label + " no standard Lead event (restricted on this dataset)", std === 0);
     var ze = zEvents(w, "generate_lead");
@@ -649,7 +649,7 @@
       fill(d, { name: c.name || "Mary Ann Lee", email: "test@example.com", phone: "", role: c.role || "support_coordinator", company: c.company });
       await submitAndWait(d, w, c.slow ? 12000 : 6000);
       var un = d.documentElement.classList.contains("unlocked");
-      var nev = events(w, "SubmitLeadForm").length + zEvents(w, "generate_lead").length;
+      var nev = events(w, "GetAppForm").length + zEvents(w, "generate_lead").length;
       var extra = true, detail = "";
       if (c.mode === "phone400") { extra = shown(d.getElementById("lf-phone-err")) && d.activeElement.id === "lf-phone"; }
       if (c.mode === "turnstile400") { extra = norm(d.getElementById("lf-form-err").textContent) === "Something went wrong checking you're not a bot. Please try again." && w.__tsReset === 1 && d.getElementById("lf-submit").textContent === "Get the app"; }

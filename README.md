@@ -22,7 +22,7 @@ Build command: none. Output directory: `/`.
 
 The store buttons appear after the form in the hero (`html.unlocked`, remembered as `af_unlocked` in localStorage). The form posts to `/api/lead`, a Cloudflare Pages Function that saves the contact to Bigin (tag `SC WSYD LP`). If Bigin fails, the payload goes to the KV namespace `LEADS_FALLBACK` (90 days) and the page still unlocks. Without JavaScript there is no bot check, so the contact is not saved, but the visitor still gets the store buttons.
 
-On success the page fires the Meta custom event `SubmitLeadForm` (page and variant only - the standard `Lead` is restricted on this dataset) and the GA4 event `generate_lead` through Zaraz.
+On success the page fires the Meta custom event `GetAppForm` (page and variant only - the standard `Lead` is restricted on this dataset, and Meta's pixel drops `SubmitLeadForm`) and the GA4 event `generate_lead` through Zaraz.
 
 Cloudflare Pages > Settings > Variables and Secrets (Production and Preview, encrypted):
 
