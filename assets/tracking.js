@@ -279,7 +279,8 @@
         name: d.name, email: d.email, phone: d.phone, role: d.role, company: d.company,
         turnstileToken: token, page: PIXEL_PAGE, variant: VARIANT,
         utm_source: qs.get("utm_source") || "", utm_medium: qs.get("utm_medium") || "",
-        utm_campaign: qs.get("utm_campaign") || "", utm_content: qs.get("utm_content") || ""
+        utm_campaign: qs.get("utm_campaign") || "", utm_term: qs.get("utm_term") || "",
+        utm_content: qs.get("utm_content") || ""
       };
       const first = d.name.indexOf(" ") > -1 ? d.name.slice(0, d.name.lastIndexOf(" ")).trim() : d.name;
 

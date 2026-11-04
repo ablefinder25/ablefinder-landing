@@ -198,7 +198,10 @@ export async function onRequestPost(context) {
   record[F.role] = ROLES[role];
   record[F.source] = SOURCE;
   record[F.page] = pv.page + "-" + pv.variant;
-  record[F.utmContent] = String(b.utm_content || "").slice(0, 255);
+  // Ads send the ad set (region) in utm_term, so Bigin shows "WSYD | ... / S4 - ..." in one field.
+  const term = String(b.utm_term || "").trim();
+  const content = String(b.utm_content || "").trim();
+  record[F.utmContent] = (term && content ? term + " / " + content : term || content).slice(0, 255);
   record[F.consent] = sydneyIso(new Date());
   record[F.consentText] = CONSENT_TEXT;
 
@@ -208,7 +211,7 @@ export async function onRequestPost(context) {
   } catch (err) {
     await backup(env, {
       record: record,
-      utm: { source: String(b.utm_source || ""), medium: String(b.utm_medium || ""), campaign: String(b.utm_campaign || ""), content: String(b.utm_content || "") }
+      utm: { source: String(b.utm_source || ""), medium: String(b.utm_medium || ""), campaign: String(b.utm_campaign || ""), term: String(b.utm_term || ""), content: String(b.utm_content || "") }
     }, err && err.stage ? err : { stage: "network" });
     return json(200, { ok: true, fallback: true, first: n.first });
   }

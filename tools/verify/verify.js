@@ -585,7 +585,7 @@
 
   async function successChecks(base, page, label) {
     setUnlocked(false); await mock("ok");
-    var f = await load(base + "?c=" + (page === "sc-start" ? "sameday" : "private") + "&utm_source=meta&utm_medium=paid_social&utm_campaign=sc-wsyd&utm_content=S2%20test", 375, 667);
+    var f = await load(base + "?c=" + (page === "sc-start" ? "sameday" : "private") + "&utm_source=meta&utm_medium=paid_social&utm_campaign=sc-wsyd&utm_term=WSYD%20%7C%20Western%20Sydney%2025-65&utm_content=S2%20test", 375, 667);
     var d = f.contentDocument, w = f.contentWindow, variant = page === "sc-start" ? "sameday" : "private";
     stubTs(w, "tok"); stubZaraz(w);
     fill(d, { name: "Mary Ann Lee", email: "test@example.com", phone: "0412 345 678", role: "support_coordinator" });
@@ -597,8 +597,8 @@
     var L = await leads();
     ok(label + " exactly one request for two taps", L.length === 1, L.length);
     var body = L.length ? JSON.parse(L[0].body) : {};
-    ok(label + " request has exactly the briefed fields", Object.keys(body).sort().join(",") === "company,email,name,page,phone,role,turnstileToken,utm_campaign,utm_content,utm_medium,utm_source,variant", Object.keys(body).sort().join(","));
-    ok(label + " request values", body.name === "Mary Ann Lee" && body.email === "test@example.com" && body.phone === "0412 345 678" && body.role === "support_coordinator" && body.page === page && body.variant === variant && body.turnstileToken === "tok" && body.utm_content === "S2 test" && body.utm_source === "meta", JSON.stringify(body));
+    ok(label + " request has exactly the briefed fields", Object.keys(body).sort().join(",") === "company,email,name,page,phone,role,turnstileToken,utm_campaign,utm_content,utm_medium,utm_source,utm_term,variant", Object.keys(body).sort().join(","));
+    ok(label + " request values", body.name === "Mary Ann Lee" && body.email === "test@example.com" && body.phone === "0412 345 678" && body.role === "support_coordinator" && body.page === page && body.variant === variant && body.turnstileToken === "tok" && body.utm_content === "S2 test" && body.utm_term === "WSYD | Western Sydney 25-65" && body.utm_source === "meta", JSON.stringify(body));
     ok(label + " unlocked: 'You're in, Mary Ann.' line", norm(d.getElementById("lead-done").textContent) === "You're in, Mary Ann. Download AbleFinder and post your first request.");
     ok(label + " unlocked: form gone, hero store buttons shown", !shown(d.getElementById("lead")) && Array.prototype.filter.call(d.querySelectorAll("#hero a[data-store]"), shown).length === 2);
     ok(label + " unlocked: final CTA shows store buttons, no 'Get the app'", Array.prototype.filter.call(d.querySelectorAll("#final-cta .final > .store-badges a[data-store]"), shown).length === 2 && !shown(d.querySelector("#final-cta .final > .gate-btn")));
@@ -719,6 +719,11 @@
     ok("fn: Mary Ann Lee -> First 'Mary Ann', Last 'Lee'; email lower-cased", r.rec && r.rec.First_Name === "Mary Ann" && r.rec.Last_Name === "Lee" && r.rec.Email === "test@example.com", JSON.stringify(r.rec));
     ok("fn: blank phone -> no Mobile or Phone sent", r.rec && !("Mobile" in r.rec) && !("Phone" in r.rec));
     ok("fn: role, source, page, UTM content, tag", r.rec && r.rec.AF_Source === "Support coordinator" && r.rec.AF_Source1 === "meta-lp" && r.rec.AF_Page === "sc-landing-private" && r.rec.AF_UTM_Content === "S2 test" && JSON.stringify(r.rec.Tag) === '[{"name":"SC WSYD LP"}]');
+    r = await run({ body: { utm_term: "WA | Western Australia 25-65" } });
+    ok("fn: ad set (region) + ad saved together in UTM content", r.rec && r.rec.AF_UTM_Content === "WA | Western Australia 25-65 / S2 test", r.rec && r.rec.AF_UTM_Content);
+    r = await run({ body: { utm_term: "WA | Western Australia 25-65", utm_content: "" } });
+    ok("fn: ad set only -> saved on its own", r.rec && r.rec.AF_UTM_Content === "WA | Western Australia 25-65", r.rec && r.rec.AF_UTM_Content);
+    r = await run({ body: { name: " Mary  Ann   Lee ", email: " Test@Example.COM " } });
     ok("fn: consent time is ISO 8601 Sydney time", r.rec && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\+1[01]:00$/.test(r.rec.AF_Consent), r.rec && r.rec.AF_Consent);
     ok("fn: consent text matches the page word for word", r.rec && consentPage && r.rec.AF_Consent_Text === consentPage, (r.rec && r.rec.AF_Consent_Text) + " | " + consentPage);
     ok("fn: success -> 200 { ok, first: 'Mary Ann' }", r.status === 200 && r.j.ok === true && r.j.first === "Mary Ann" && !r.j.fallback);
